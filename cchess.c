@@ -6,6 +6,9 @@
 #define B_INSIDE 1
 #define B_VALUE 2
 
+#define BG_WHITE 0
+#define BG_BLACK 1
+
 static char ** board;
 
 void alloc_board();
@@ -29,9 +32,10 @@ int is_white(char piece);
 // change the colors of the output
 void set_red();
 void set_cyan();
-void set_whiteBG();
-void set_blackBG();
 void reset_color();
+
+// sets the color to either BG_BLACK or BG_WHITE
+void set_BGcolor(size_t color);
 
 int main() {
     alloc_board();
@@ -87,72 +91,65 @@ void free_board() {
 }
 
 void print_board() {
+    system("clear");
     for (size_t i = 0; i < 8; i++) {
-        print_board_line(B_BORDER, i);
         print_board_line(B_INSIDE, i);
         print_board_line(B_VALUE, i);
         print_board_line(B_INSIDE, i);
     }
-    print_board_line(B_BORDER, 0);
 }
 
 void print_board_line(size_t segment, size_t row) {
-    char white_cell = ' ';
-    char black_cell = ' ';
-    char cell_color;
     char val;
+    size_t color;
 
-    if (segment == B_BORDER) {
-        puts("+-------+-------+-------+-------+-------+-------+-------+-------+");
-    } else {
-        for (size_t i = 0; i < 8; i++) {
-            if (row % 2 == 0) {
-                if (i % 2 == 0) {
-                    set_whiteBG();
-                    cell_color = white_cell;
-                } else {
-                    set_blackBG();
-                    cell_color = black_cell;
-                }
+    for (size_t i = 0; i < 8; i++) {
+        if (row % 2 == 0) {
+            if (i % 2 == 0) {
+                color = BG_WHITE;
             } else {
-                if (i % 2 == 0) {
-                    set_blackBG();
-                    cell_color = black_cell;
-                } else {
-                    set_whiteBG();
-                    cell_color = white_cell;
-                }
+                color = BG_BLACK;
             }
-            if (segment == B_INSIDE || board[row][i] == 0) {
-                printf("|%c%c%c%c%c%c%c", cell_color, cell_color, cell_color, cell_color, cell_color, cell_color, cell_color);
-            } else if (segment == B_VALUE) {
-                val = board[row][i];
-                printf("|%c%c%c", cell_color, white_cell, white_cell);
-                if (is_white(val)) {
-                    set_cyan();
-                    val -= 32;
-                } else {
-                    set_red();
-                }
-                printf("%c", val);
-                reset_color();
-                printf("%c%c%c", white_cell, white_cell, cell_color);
+        } else {
+            if (i % 2 == 0) {
+                color = BG_BLACK;
+            } else {
+                color = BG_WHITE;
             }
         }
-        printf("|\n");
+        if (segment == B_INSIDE || board[row][i] == 0) {
+            set_BGcolor(color);
+            printf("       ");
+            reset_color();
+        } else if (segment == B_VALUE) {
+            val = board[row][i];
+            set_BGcolor(color);
+            printf("   ");
+            if (is_white(val)) {
+                set_cyan();
+                val -= 32;
+            } else {
+                set_red();
+            }
+            printf("%c", val);
+            set_BGcolor(color);
+            printf("   ");
+            reset_color();
+        }
     }
+    printf("\n");
 }
 
 int is_white(char piece) {
     return (piece > 'a') && (piece < 'z');
 }
 
-void set_whiteBG() {
-    printf("\x1b[47m");
-}
-
-void set_blackBG() {
-    printf("\x1b[40m");
+void set_BGcolor(size_t color) {
+    if (color == BG_WHITE) {
+        printf("\x1b[47m");
+    } else if (color == BG_BLACK) {
+        printf("\x1b[40m");
+    }
 }
 
 void set_red() {
